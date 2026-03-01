@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { blogPosts as defaultBlogPosts, blogCategories } from "../data/blogData";
+import { blogCategories } from "../types";
 import { useQuery } from "../hooks/useQuery";
 import { getBlogPosts } from "../services/api";
 
@@ -43,13 +43,14 @@ const ArrowRightIcon = ({ size = 16 }: { size?: number }) => (
 
 /* ─── Blog Listing View ─── */
 function BlogListing({ onSelectPost }: { onSelectPost: (slug: string) => void }) {
-  const { data: blogPosts } = useQuery(getBlogPosts, defaultBlogPosts);
+  const { data: blogPosts } = useQuery(getBlogPosts);
 
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
 
+  const allPosts = blogPosts ?? [];
   const filteredPosts = useMemo(() => {
-    return blogPosts.filter((post) => {
+    return allPosts.filter((post) => {
       const matchesCategory = selectedCategory === "All" || post.category === selectedCategory;
       const matchesSearch =
         searchQuery === "" ||
@@ -58,9 +59,9 @@ function BlogListing({ onSelectPost }: { onSelectPost: (slug: string) => void })
         post.tags.some((t) => t.toLowerCase().includes(searchQuery.toLowerCase()));
       return matchesCategory && matchesSearch;
     });
-  }, [selectedCategory, searchQuery, blogPosts]);
+  }, [selectedCategory, searchQuery, allPosts]);
 
-  const featuredPost = useMemo(() => blogPosts.find((p) => p.trending), [blogPosts]);
+  const featuredPost = useMemo(() => allPosts.find((p) => p.trending), [allPosts]);
 
   return (
     <>
@@ -247,12 +248,13 @@ function BlogListing({ onSelectPost }: { onSelectPost: (slug: string) => void })
 
 /* ─── Blog Detail View ─── */
 function BlogDetail({ slug, onBack }: { slug: string; onBack: () => void }) {
-  const { data: blogPosts } = useQuery(getBlogPosts, defaultBlogPosts);
+  const { data: blogPosts } = useQuery(getBlogPosts);
 
-  const blog = useMemo(() => blogPosts.find((b) => b.slug === slug), [slug, blogPosts]);
+  const allPosts = blogPosts ?? [];
+  const blog = useMemo(() => allPosts.find((b) => b.slug === slug), [slug, allPosts]);
   const relatedPosts = useMemo(
-    () => (blog ? blogPosts.filter((p) => p.id !== blog.id && p.category === blog.category).slice(0, 3) : []),
-    [blog, blogPosts]
+    () => (blog ? allPosts.filter((p) => p.id !== blog.id && p.category === blog.category).slice(0, 3) : []),
+    [blog, allPosts]
   );
 
   const [isLiked, setIsLiked] = useState(false);
@@ -504,7 +506,7 @@ function BlogDetail({ slug, onBack }: { slug: string; onBack: () => void }) {
 
 /* ─── Main BlogPage Component ─── */
 export default function BlogPage() {
-  const { data: blogPosts } = useQuery(getBlogPosts, defaultBlogPosts);
+  const { data: blogPosts } = useQuery(getBlogPosts);
 
   const [view, setView] = useState<"listing" | "detail">("listing");
   const [selectedSlug, setSelectedSlug] = useState<string | null>(null);

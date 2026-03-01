@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { services as defaultServices, serviceCategories } from "../data/servicesData";
-import { contactInfo as defaultContactInfo } from "../data/contactData";
+import { serviceCategories } from "../types";
 import { useQuery } from "../hooks/useQuery";
 import { getServices, getContactInfo } from "../services/api";
+import LoadingSpinner from "../components/LoadingSpinner";
 import type { ReactElement } from "react";
 
 /* ─── Icon Map ─── */
@@ -62,15 +62,17 @@ const categoryIcons: Record<string, ReactElement> = {
 };
 
 export default function ServicesPage() {
-  const { data: services } = useQuery(getServices, defaultServices);
-  const { data: contactInfo } = useQuery(getContactInfo, defaultContactInfo);
-
+  const { data: services } = useQuery(getServices);
+  const { data: contactInfo } = useQuery(getContactInfo);
   const [activeCategory, setActiveCategory] = useState("All");
 
+  if (!contactInfo) return <LoadingSpinner />;
+
+  const allServices = services ?? [];
   const filteredServices =
     activeCategory === "All"
-      ? services
-      : services.filter(
+      ? allServices
+      : allServices.filter(
           (s) => s.category === activeCategory.toLowerCase()
         );
 

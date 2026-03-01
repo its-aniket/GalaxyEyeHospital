@@ -1,5 +1,4 @@
 import { Link } from "react-router-dom";
-import { services as defaultServices } from "../data/servicesData";
 import { useQuery } from "../hooks/useQuery";
 import { getServices } from "../services/api";
 import type { ReactElement } from "react";
@@ -49,7 +48,7 @@ const iconComponents: Record<string, ReactElement> = {
 };
 
 export default function Services() {
-  const { data: services } = useQuery(getServices, defaultServices);
+  const { data: services } = useQuery(getServices);
 
   return (
     <section className="py-24 bg-gray-50" id="services">
@@ -60,7 +59,7 @@ export default function Services() {
           <p className="text-gray-600 text-lg">We combine medical expertise with state-of-the-art technology to provide the best possible care for your eyes.</p>
         </div>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {services.map((service) => (
+          {(services ?? []).map((service) => (
             <Link key={service.title} to={`/services/${service.slug}`} className="rounded-xl bg-white h-full hover:shadow-xl transition-all duration-300 shadow-md group overflow-hidden relative block">
               <div className="absolute top-0 left-0 w-1 h-full bg-[hsl(var(--accent))] opacity-0 group-hover:opacity-100 transition-opacity" />
               <div className="p-6">

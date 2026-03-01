@@ -1,8 +1,8 @@
 import { useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
-import { contactInfo as defaultContactInfo, branches as defaultBranches, hospitalInfo as defaultHospitalInfo } from "../data/contactData";
 import { useQuery } from "../hooks/useQuery";
 import { getContactInfo, getBranches, getHospitalInfo } from "../services/api";
+import LoadingSpinner from "../components/LoadingSpinner";
 
 /* ─── Icon Helpers ─── */
 const PhoneIcon = () => (
@@ -28,9 +28,9 @@ const ExternalLinkIcon = () => (
 );
 
 export default function ContactPage() {
-  const { data: contactInfo } = useQuery(getContactInfo, defaultContactInfo);
-  const { data: branches } = useQuery(getBranches, defaultBranches);
-  const { data: hospitalInfo } = useQuery(getHospitalInfo, defaultHospitalInfo);
+  const { data: contactInfo } = useQuery(getContactInfo);
+  const { data: branches } = useQuery(getBranches);
+  const { data: hospitalInfo } = useQuery(getHospitalInfo);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -38,6 +38,7 @@ export default function ContactPage() {
     email: "",
     message: "",
   });
+
   const [submitted, setSubmitted] = useState(false);
 
   const handleSubmit = (e: FormEvent) => {
@@ -47,6 +48,8 @@ export default function ContactPage() {
     setTimeout(() => setSubmitted(false), 4000);
     setFormData({ name: "", phone: "", email: "", message: "" });
   };
+
+  if (!contactInfo || !hospitalInfo) return <LoadingSpinner />;
 
   return (
     <>
@@ -107,7 +110,7 @@ export default function ContactPage() {
           </div>
 
           <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-            {branches.map((branch) => (
+            {(branches ?? []).map((branch) => (
               <div
                 key={branch.id}
                 className="group relative bg-white border border-gray-200 rounded-2xl p-8 hover:shadow-xl hover:border-[hsl(var(--accent))]/30 transition-all duration-300"

@@ -5,8 +5,6 @@
    ══════════════════════════════════════════════════════════════ */
 
 import { supabase } from "../lib/supabase";
-
-// Re-export existing types so components can import from one place
 import type {
   HospitalInfo,
   ContactInfo,
@@ -14,12 +12,13 @@ import type {
   Branch,
   OperatingHours,
   HospitalStat,
-} from "../data/contactData";
-import type { Doctor } from "../data/doctorsData";
-import type { Service, ServicePageContent } from "../data/servicesData";
-import type { Review } from "../data/reviewsData";
-import type { BlogPost } from "../data/blogData";
-import type { Award } from "../data/awardsData";
+  Doctor,
+  Service,
+  ServicePageContent,
+  Review,
+  BlogPost,
+  Award,
+} from "../types";
 
 /* ─── Hospital Info ─── */
 export async function getHospitalInfo(): Promise<HospitalInfo> {

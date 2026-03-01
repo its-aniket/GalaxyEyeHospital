@@ -1,5 +1,4 @@
 import type { ReactElement } from "react";
-import { hospitalStats as defaultStats } from "../data/contactData";
 import { useQuery } from "../hooks/useQuery";
 import { getHospitalStats } from "../services/api";
 
@@ -28,7 +27,7 @@ const statIcons: Record<string, ReactElement> = {
 };
 
 export default function Stats() {
-  const { data: hospitalStats } = useQuery(getHospitalStats, defaultStats);
+  const { data: hospitalStats } = useQuery(getHospitalStats);
 
   return (
     <section className="py-16 bg-[hsl(var(--primary))] text-white relative overflow-hidden">
@@ -41,7 +40,7 @@ export default function Stats() {
       />
       <div className="container mx-auto px-4 md:px-6 relative z-10">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12 text-center">
-          {hospitalStats.map((stat) => (
+          {(hospitalStats ?? []).map((stat) => (
             <div key={stat.label} className="space-y-2 group">
               <div className="mx-auto w-12 h-12 bg-white/10 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
                 <div className="h-6 w-6 text-[hsl(var(--accent))]">{statIcons[stat.icon]}</div>

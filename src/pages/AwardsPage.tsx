@@ -1,9 +1,9 @@
 import { useState, type ReactNode } from "react";
 import { Link } from "react-router-dom";
-import { awards as defaultAwards, awardCategories } from "../data/awardsData";
-import { contactInfo as defaultContactInfo } from "../data/contactData";
+import { awardCategories } from "../types";
 import { useQuery } from "../hooks/useQuery";
 import { getAwards, getContactInfo } from "../services/api";
+import LoadingSpinner from "../components/LoadingSpinner";
 
 /* ─── Category Icons ─── */
 const categoryIcons: Record<string, ReactNode> = {
@@ -28,16 +28,18 @@ const categoryIcons: Record<string, ReactNode> = {
 };
 
 export default function AwardsPage() {
-  const { data: awards } = useQuery(getAwards, defaultAwards);
-  const { data: contactInfo } = useQuery(getContactInfo, defaultContactInfo);
-
+  const { data: awards } = useQuery(getAwards);
+  const { data: contactInfo } = useQuery(getContactInfo);
   const [activeCategory, setActiveCategory] = useState("All");
 
-  const highlighted = awards.filter((a) => a.highlighted);
+  if (!contactInfo) return <LoadingSpinner />;
+
+  const allAwards = awards ?? [];
+  const highlighted = allAwards.filter((a) => a.highlighted);
   const filteredAwards =
     activeCategory === "All"
-      ? awards
-      : awards.filter((a) => a.category === activeCategory.toLowerCase());
+      ? allAwards
+      : allAwards.filter((a) => a.category === activeCategory.toLowerCase());
 
   return (
     <>
@@ -66,7 +68,7 @@ export default function AwardsPage() {
             {/* Quick stats line */}
             <div className="flex flex-wrap justify-center gap-8 pt-4">
               {[
-                { value: `${awards.length}+`, label: "Awards" },
+                { value: `${allAwards.length}+`, label: "Awards" },
                 { value: "40+", label: "Years" },
                 { value: "National", label: "Recognition" },
               ].map((s) => (

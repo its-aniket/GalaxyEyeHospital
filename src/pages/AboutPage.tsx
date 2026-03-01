@@ -1,8 +1,7 @@
 import { Link } from "react-router-dom";
-import { doctors as defaultDoctors } from "../data/doctorsData";
-import { contactInfo as defaultContactInfo } from "../data/contactData";
 import { useQuery } from "../hooks/useQuery";
 import { getDoctors, getContactInfo } from "../services/api";
+import LoadingSpinner from "../components/LoadingSpinner";
 
 /* ─── Icon Helpers ─── */
 const CheckIcon = () => (
@@ -51,8 +50,10 @@ const impactStats = [
 ];
 
 export default function AboutPage() {
-  const { data: doctors } = useQuery(getDoctors, defaultDoctors);
-  const { data: contactInfo } = useQuery(getContactInfo, defaultContactInfo);
+  const { data: doctors } = useQuery(getDoctors);
+  const { data: contactInfo } = useQuery(getContactInfo);
+
+  if (!contactInfo) return <LoadingSpinner />;
 
   return (
     <>
@@ -251,7 +252,7 @@ export default function AboutPage() {
           </div>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
-            {doctors.map((doc) => (
+            {(doctors ?? []).map((doc) => (
               <div
                 key={doc.name}
                 className="group rounded-2xl bg-white shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden relative"

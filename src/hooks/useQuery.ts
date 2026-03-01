@@ -3,15 +3,15 @@ import { useState, useEffect, useRef } from "react";
 /**
  * Generic hook for fetching data from Supabase.
  *
- * - Renders immediately with `defaultValue` (no loading spinner).
+ * - Starts with `null` while loading (or an optional `initialValue`).
  * - Once Supabase responds, swaps in the live data.
- * - If the query fails, keeps the default — site never breaks.
+ * - Exposes `loading` and `error` states for UI handling.
  */
 export function useQuery<T>(
   queryFn: () => Promise<T>,
-  defaultValue: T
-): { data: T; loading: boolean; error: Error | null } {
-  const [data, setData] = useState<T>(defaultValue);
+  initialValue?: T
+): { data: T | null; loading: boolean; error: Error | null } {
+  const [data, setData] = useState<T | null>(initialValue ?? null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const ran = useRef(false);
@@ -23,7 +23,7 @@ export function useQuery<T>(
     queryFn()
       .then((result) => setData(result))
       .catch((err) => {
-        console.error("[useQuery] Supabase fetch failed, using defaults:", err);
+        console.error("[useQuery] Supabase fetch failed:", err);
         setError(err);
       })
       .finally(() => setLoading(false));

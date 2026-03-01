@@ -1,10 +1,10 @@
 import { Link } from "react-router-dom";
-import { contactInfo as defaultContactInfo } from "../data/contactData";
 import { useQuery } from "../hooks/useQuery";
 import { getContactInfo } from "../services/api";
 
 export default function CTABanner() {
-  const { data: contactInfo } = useQuery(getContactInfo, defaultContactInfo);
+  const { data: contactInfo } = useQuery(getContactInfo);
+  if (!contactInfo) return null;
 
   return (
     <section className="py-20 bg-[hsl(var(--primary))] relative overflow-hidden">

@@ -1,10 +1,9 @@
 import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { services as defaultServices } from "../data/servicesData";
-import { contactInfo as defaultContactInfo } from "../data/contactData";
 import { useQuery } from "../hooks/useQuery";
 import { getServices, getContactInfo } from "../services/api";
-import type { Service, FAQ } from "../data/servicesData";
+import type { Service, FAQ } from "../types";
+import LoadingSpinner from "../components/LoadingSpinner";
 import type { ReactElement } from "react";
 
 /* ─── Service Icons (same as ServicesPage) ─── */
@@ -89,15 +88,17 @@ export default function ServiceDetailPage() {
   const navigate = useNavigate();
   const [openFAQ, setOpenFAQ] = useState<number | null>(0);
 
-  const { data: services } = useQuery(getServices, defaultServices);
-  const { data: contactInfo } = useQuery(getContactInfo, defaultContactInfo);
+  const { data: services } = useQuery(getServices);
+  const { data: contactInfo } = useQuery(getContactInfo);
 
-  const service: Service | undefined = services.find((s) => s.slug === slug);
+  const service: Service | undefined = (services ?? []).find((s) => s.slug === slug);
 
   // Scroll to top on mount / slug change
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [slug]);
+
+  if (!contactInfo || !services) return <LoadingSpinner />;
 
   if (!service) {
     return (

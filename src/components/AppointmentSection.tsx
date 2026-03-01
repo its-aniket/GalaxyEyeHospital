@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { branches as defaultBranches, appointmentTimeSlots as defaultTimeSlots } from "../data/contactData";
 import { useQuery } from "../hooks/useQuery";
 import { getBranches, getAppointmentTimeSlots } from "../services/api";
 
@@ -19,14 +18,19 @@ function generateCalendarDays() {
 }
 
 export default function AppointmentSection() {
-  const { data: branches } = useQuery(getBranches, defaultBranches);
-  const { data: timeSlots } = useQuery(getAppointmentTimeSlots, defaultTimeSlots);
-  const branchNames = branches.map((b) => b.name);
+  const { data: branches } = useQuery(getBranches);
+  const { data: timeSlots } = useQuery(getAppointmentTimeSlots);
+  const branchNames = (branches ?? []).map((b) => b.name);
 
-  const [selectedBranch, setSelectedBranch] = useState(branchNames[0]);
+  const [selectedBranch, setSelectedBranch] = useState("");
   const [selectedDate, setSelectedDate] = useState(today.getDate());
   const [selectedTime, setSelectedTime] = useState("10:00 AM");
   const calendarDays = generateCalendarDays();
+
+  // Set default branch once data loads
+  const activeBranch = selectedBranch || branchNames[0] || "";
+
+  if (!branches) return null;
 
   return (
     <section className="py-24 bg-white" id="appointment">
@@ -48,7 +52,7 @@ export default function AppointmentSection() {
               </h3>
               <select
                 className="w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-700 focus:ring-2 focus:ring-[hsl(var(--accent))] focus:border-transparent outline-none"
-                value={selectedBranch}
+                value={activeBranch}
                 onChange={(e) => setSelectedBranch(e.target.value)}
               >
                 {branchNames.map((b) => <option key={b} value={b}>{b}</option>)}
@@ -89,7 +93,7 @@ export default function AppointmentSection() {
                 Available Time Slots
               </h3>
               <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
-                {timeSlots.map((t) => (
+                {(timeSlots ?? []).map((t) => (
                   <button
                     key={t}
                     onClick={() => setSelectedTime(t)}
@@ -138,7 +142,7 @@ export default function AppointmentSection() {
                 </div>
                 <div className="flex justify-between text-gray-600">
                   <span>Branch</span>
-                  <span className="font-medium text-gray-900 text-right max-w-45 truncate">{selectedBranch.split(" - ")[1]}</span>
+                  <span className="font-medium text-gray-900 text-right max-w-45 truncate">{(activeBranch.split(" - ")[1]) || activeBranch}</span>
                 </div>
               </div>
 
