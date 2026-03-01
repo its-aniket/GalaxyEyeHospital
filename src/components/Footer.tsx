@@ -26,9 +26,8 @@ export default function Footer() {
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-10 mb-12">
           {/* Brand */}
           <div className="space-y-4">
-            <div className="flex items-center gap-2">
-              <img src={hospitalInfo.logo} alt={hospitalInfo.name} className="w-8 h-8" />
-              <span className="text-white text-xl font-bold font-[Outfit]">{hospitalInfo.name}</span>
+            <div className="flex items-center">
+              <img src="/logo.png" alt={hospitalInfo.name} className="h-12 object-contain brightness-0 invert" />
             </div>
             <p className="text-gray-400 text-sm leading-relaxed">
               {hospitalInfo.description}
