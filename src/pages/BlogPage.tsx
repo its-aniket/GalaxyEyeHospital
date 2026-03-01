@@ -506,8 +506,6 @@ function BlogDetail({ slug, onBack }: { slug: string; onBack: () => void }) {
 
 /* ─── Main BlogPage Component ─── */
 export default function BlogPage() {
-  const { data: blogPosts } = useQuery(getBlogPosts);
-
   const [view, setView] = useState<"listing" | "detail">("listing");
   const [selectedSlug, setSelectedSlug] = useState<string | null>(null);
 
