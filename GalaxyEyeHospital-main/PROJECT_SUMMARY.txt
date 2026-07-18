@@ -1,0 +1,274 @@
+================================================================================
+  GALAXY EYE HOSPITAL — WEBSITE PROJECT SUMMARY
+================================================================================
+
+Project: Galaxy Eye Hospital Official Website
+URL:     Deployed on Vercel (auto-deploys from GitHub main branch)
+Repo:    github.com/its-aniket/GalaxyEyeHospital
+Path:    viteapp/
+
+================================================================================
+  1. TECH STACK
+================================================================================
+
+  Category          Technology              Version
+  ─────────────     ─────────────────────   ──────────
+  Framework         React                   19.2.0
+  Routing           react-router-dom        7.13.1
+  Styling           Tailwind CSS v4         4.1.18
+  Backend / DB      Supabase (PostgreSQL)   2.98.0
+  Build Tool        Vite                    7.2.4
+  Language          TypeScript              5.9.3
+  Linting           ESLint                  9.39.1
+  Fonts             Google Fonts (Inter + Outfit)
+  Deployment        Vercel (SPA rewrite)
+
+================================================================================
+  2. PAGES & ROUTES
+================================================================================
+
+  Route               Page Component        Description
+  ─────────────────   ───────────────────   ──────────────────────────────────
+  /                   HomePage              Landing page (Hero, Stats, Services,
+                                            Appointment, WhyChooseUs, CTABanner)
+  /about              AboutPage             About us, doctors team, mission/vision,
+                                            core values, impact stats
+  /services           ServicesPage          All services with category filter
+                                            (Surgical, Non-Surgical, Diagnostic)
+  /services/:slug     ServiceDetailPage     Individual service detail with FAQ
+                                            accordion, process steps, benefits
+  /awards             AwardsPage            Awards listing with category filter
+                                            and highlighted awards section
+  /blog               BlogPage             Blog listing + inline detail view with
+                                            search, categories, trending, likes,
+                                            bookmarks, share, scroll progress
+  /contact            ContactPage           Contact form, branches info, map links,
+                                            operating hours
+
+  All routes wrapped in BrowserRouter with persistent Navbar and Footer.
+  ScrollToTop component handles smooth scrolling on route changes.
+
+================================================================================
+  3. COMPONENTS
+================================================================================
+
+  File                      Purpose
+  ────────────────────────  ───────────────────────────────────────────────────
+  Hero.tsx                  Hero banner section with animations
+  Stats.tsx                 Hospital statistics display (4 stats with icons)
+  Services.tsx              Services grid/showcase section (6 services)
+  AppointmentSection.tsx    Appointment booking form with branch selector,
+                            calendar picker, time slots, booking summary
+  WhyChooseUs.tsx           "Why Choose Us" features with check icons
+  CTABanner.tsx             Call-to-action banner (book + call buttons)
+  Navbar.tsx                Site navigation with mobile menu
+  Footer.tsx                Footer with address, phone, email, social links,
+                            quick links, service links
+  LoadingSpinner.tsx        Centered spinning animation for loading states
+
+================================================================================
+  4. DESIGN SYSTEM
+================================================================================
+
+  Colors (HSL):
+    --primary           176, 61%, 19%     Dark teal (#134D4A)
+    --accent            173, 80%, 40%     Bright teal (#14B8A6)
+    --foreground        222, 47%, 11%     Near-black
+    --background        0, 0%, 100%       White
+    --secondary         210, 40%, 96%     Light gray
+    --destructive       0, 84.2%, 60.2%   Red (errors)
+
+  Typography:
+    Headings (display):  Outfit (weight 700, tight letter-spacing)
+    Body text:           Inter (weights 300-700)
+
+  Zoom:                  html { zoom: 0.9 } — entire page at 90%
+  Border radius:         0.5rem default
+
+  Icons:                 All inline SVGs (Lucide-style), no icon library
+
+================================================================================
+  5. SUPABASE DATABASE
+================================================================================
+
+  5a. Database Tables (14 total)
+  ──────────────────────────────
+
+  Table                   Key Columns                          Notes
+  ──────────────────────  ──────────────────────────────────   ──────────────
+  hospital_info           name, legal_name, tagline,           Single-row
+                          description, founded_year, logo
+  contact_info            primary_phone, secondary_phone,      Single-row
+                          toll_free, emergency_phone, emails
+  social_links            platform, url, handle, sort_order
+  branches                name, type, address, city, state,    Type: main/
+                          pincode, phone, email, map_url,      clinic/center
+                          lat, lng
+  operating_hours         day, open_time, close_time, is_open
+  doctors                 slug, name, speciality, quals,       Unique slug
+                          experience, bio, image, languages,
+                          linkedin, twitter, available
+  services                slug, title, descriptions, icon,     JSONB for
+                          image, features, duration, recovery, page_content
+                          success_rate, category, popular,
+                          page_content
+  reviews                 name, avatar, rating (1-5), comment,
+                          treatment, date, branch, verified
+  blog_posts              slug, title, excerpt, content,       Unique slug
+                          author, date, category, read_time,
+                          views, likes, image, trending, tags
+  awards                  title, year, issuing_authority,
+                          category, highlighted, sort_order
+  hospital_stats          stat_key, value, label, icon
+  quick_links             label, href, sort_order              Footer links
+  service_links           label, href, sort_order              Footer links
+  appointment_time_slots  time_slot, sort_order
+
+  All tables have RLS enabled with public read policies.
+  Indexes on slug, category, and treatment columns.
+
+  5b. API Layer (src/services/api.ts)
+  ────────────────────────────────────
+
+  14 async functions that fetch from Supabase and transform
+  snake_case DB rows to camelCase TypeScript types:
+
+    getHospitalInfo()         getContactInfo()
+    getSocialLinks()          getBranches()
+    getOperatingHours()       getDoctors()
+    getServices()             getReviews()
+    getBlogPosts()            getAwards()
+    getHospitalStats()        getQuickLinks()
+    getServiceLinks()         getAppointmentTimeSlots()
+
+  5c. Caching Hook (src/hooks/useQuery.ts)
+  ─────────────────────────────────────────
+
+  Generic useQuery<T>(queryFn) hook with in-memory deduplication:
+  - Keyed by function reference
+  - First component to call a queryFn triggers the fetch
+  - All other components reuse the same promise/result
+  - One network request per query for the entire app lifecycle
+  - Exposes: { data, loading, error }
+
+  5d. Seed Script (supabase/seed.ts)
+  ───────────────────────────────────
+
+  - Migrates hardcoded TypeScript data into Supabase tables
+  - Run via: npx tsx supabase/seed.ts
+  - Uses SUPABASE_SERVICE_ROLE_KEY for write access
+  - Upserts all 14 data sets with camelCase → snake_case mapping
+
+================================================================================
+  6. TYPE DEFINITIONS (src/types.ts)
+================================================================================
+
+  Interfaces (14):
+    HospitalInfo, ContactInfo, SocialLink, Branch, OperatingHours,
+    HospitalStat, Doctor, FAQ, ProcessStep, ServiceBenefit,
+    ServicePageContent, Service, Review, BlogPost, Award
+
+  Constants:
+    serviceCategories = ["All", "Surgical", "Non-Surgical", "Diagnostic"]
+    blogCategories    = ["All", "LASIK", "Eye Health", "Glaucoma",
+                         "Cataract", "Pediatric", "Nutrition"]
+    awardCategories   = ["All", "National", "State", "Medical",
+                         "Social", "Institutional"]
+
+  Helper:
+    getFormattedHours() → "Mon - Sun: 9:00 AM - 9:00 PM"
+
+================================================================================
+  7. KEY FEATURES
+================================================================================
+
+  [x] Fully responsive design (mobile, tablet, desktop)
+  [x] 7 pages with client-side routing (React Router v7)
+  [x] Persistent Navbar and Footer across all pages
+  [x] ScrollToTop with smooth scrolling and hash support
+  [x] Dynamic service detail pages with slug-based routing
+  [x] FAQ accordion on service detail pages
+  [x] Blog system with search, category filter, trending posts
+  [x] Blog detail view with scroll progress bar
+  [x] Like, bookmark, and share functionality on blog posts
+  [x] Related posts sidebar in blog detail
+  [x] Awards page with category filtering and highlighted awards
+  [x] Contact page with form, branch cards, and map links
+  [x] Appointment booking section (branch, calendar, time slots)
+  [x] Doctor profiles with specialities and LinkedIn links
+  [x] Hospital statistics section with animated icons
+  [x] "Why Choose Us" section with feature highlights
+  [x] CTA banners with phone call and booking links
+  [x] Loading spinners for async data
+  [x] Supabase PostgreSQL backend (14 tables, RLS enabled)
+  [x] Request deduplication (one fetch per query, cached)
+  [x] snake_case → camelCase data transformation layer
+  [x] All inline SVG icons (no external icon library)
+  [x] Wave dividers between hero sections
+  [x] Hover animations and transitions throughout
+  [x] Google Fonts (Outfit + Inter)
+  [x] 90% page zoom for tighter layout
+  [x] SPA deployment on Vercel with catch-all rewrite
+  [x] Environment variables for Supabase keys
+  [x] TypeScript strict mode with zero compile errors
+  [x] Tailwind CSS v4 with custom theme variables
+
+================================================================================
+  8. DEPLOYMENT
+================================================================================
+
+  Platform:         Vercel
+  Build Command:    tsc -b && vite build
+  Output Dir:       dist/
+  SPA Rewrite:      vercel.json → /(.*) → /
+  Env Variables:    VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY
+  Auto-deploy:      Pushes to GitHub main branch trigger redeploy
+
+================================================================================
+  9. PROJECT STRUCTURE
+================================================================================
+
+  viteapp/
+  ├── public/                     Static assets (images, favicon)
+  ├── supabase/
+  │   ├── schema.sql              Database schema (14 tables)
+  │   └── seed.ts                 Data seeding script
+  ├── src/
+  │   ├── components/
+  │   │   ├── Hero.tsx
+  │   │   ├── Navbar.tsx
+  │   │   ├── Footer.tsx
+  │   │   ├── Stats.tsx
+  │   │   ├── Services.tsx
+  │   │   ├── AppointmentSection.tsx
+  │   │   ├── WhyChooseUs.tsx
+  │   │   ├── CTABanner.tsx
+  │   │   └── LoadingSpinner.tsx
+  │   ├── pages/
+  │   │   ├── AboutPage.tsx
+  │   │   ├── ServicesPage.tsx
+  │   │   ├── ServiceDetailPage.tsx
+  │   │   ├── AwardsPage.tsx
+  │   │   ├── BlogPage.tsx
+  │   │   └── ContactPage.tsx
+  │   ├── hooks/
+  │   │   └── useQuery.ts         Cached data-fetching hook
+  │   ├── services/
+  │   │   └── api.ts              Supabase API functions (14)
+  │   ├── lib/
+  │   │   └── supabase.ts         Supabase client init
+  │   ├── types.ts                All interfaces & constants
+  │   ├── App.tsx                 Router + ScrollToTop + layout
+  │   ├── App.css                 App-level styles
+  │   ├── main.tsx                Entry point
+  │   └── index.css               Tailwind + CSS variables + fonts
+  ├── .env                        Supabase credentials (gitignored)
+  ├── vercel.json                 SPA rewrite config
+  ├── package.json                Dependencies & scripts
+  ├── tsconfig.json               TypeScript config
+  ├── vite.config.ts              Vite + Tailwind plugin
+  └── eslint.config.js            ESLint config
+
+================================================================================
+  END OF DOCUMENT
+================================================================================
