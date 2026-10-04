@@ -1,0 +1,22 @@
+.hero-copy-stack{display:grid}
+.hero-copy-slide{grid-area:1/1;opacity:0;visibility:hidden;transform:translateY(10px);transition:opacity .55s ease,transform .55s ease,visibility .55s;pointer-events:none}
+.hero-copy-slide.is-active{opacity:1;visibility:visible;transform:translateY(0);pointer-events:auto}
+.hero-actions a{white-space:nowrap}
+.hero-image-stack{aspect-ratio:1408/768;isolation:isolate}
+.hero-image-slide{position:absolute;inset:0;opacity:0;visibility:hidden;transition:opacity .7s ease,visibility .7s;pointer-events:none}
+.hero-image-slide.is-active{opacity:1;visibility:visible;pointer-events:auto}
+.hero-image-badge{max-width:calc(100% - 64px)}
+.hero-controls{display:flex;align-items:center;gap:14px;color:#587872}
+.hero-dots{display:flex;align-items:center;gap:2px}
+.hero-dots button{height:32px;min-width:28px;display:grid;place-items:center;cursor:pointer}
+.hero-dots span{height:6px;width:6px;border-radius:20px;background:#b8cfca;transition:width .3s,background .3s}
+.hero-dots button.is-active span{width:25px;background:hsl(var(--primary))}
+.hero-current-label{font-size:11px;font-weight:500;flex:1}
+.hero-arrow-controls{display:flex;gap:6px}
+.hero-arrow-controls button{display:grid;place-items:center;width:32px;height:32px;border:1px solid #d6e4e0;border-radius:50%;background:#ffffff90;color:hsl(var(--primary));cursor:pointer;transition:background .2s,border-color .2s}
+.hero-arrow-controls button:hover{background:#e8f4ef;border-color:#9abdb2}
+.hero-arrow-controls button:disabled{opacity:.4;cursor:default}
+.hero-controls button:focus-visible,.hero-actions a:focus-visible{outline:2px solid hsl(var(--accent));outline-offset:4px}
+@media(min-width:1024px) and (max-width:1279px){.hero-actions a{padding-left:20px;padding-right:20px;font-size:16px}}
+@media(max-width:400px){.hero-current-label{font-size:10px}.hero-controls{gap:8px}.hero-image-badge{bottom:16px;left:16px;padding:12px;max-width:calc(100% - 32px)}.hero-image-badge p:last-child{font-size:11px}.hero-image-badge p:first-child{font-size:20px}}
+@media(prefers-reduced-motion:reduce){.hero-copy-slide,.hero-image-slide,.hero-dots span{transition:none;transform:none}}

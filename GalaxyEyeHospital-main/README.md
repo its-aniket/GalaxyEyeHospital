@@ -1,4 +1,8 @@
-# React + TypeScript + Vite
+# Galaxy Eye Hospital
+
+Appointment backend setup, API contract, and database tests: [supabase/README.md](supabase/README.md).
+
+## Frontend
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 

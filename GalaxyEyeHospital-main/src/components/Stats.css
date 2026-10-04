@@ -1,0 +1,36 @@
+.impact-section{padding:88px 0 64px;background:#f5f8f5;color:#174e48;border-top:1px solid #e5ece7}
+.impact-heading{display:flex;justify-content:space-between;align-items:flex-end;gap:32px;margin-bottom:36px}
+.impact-eyebrow{display:flex;align-items:center;gap:10px;text-transform:uppercase;letter-spacing:.18em;font-size:11px;font-weight:700;margin-bottom:18px}
+.impact-eyebrow span{width:24px;height:2px;background:#21a58f}
+.impact-heading h2{font-size:clamp(36px,4vw,56px);line-height:1.08;letter-spacing:-.045em;margin:0}
+.impact-heading h2 span{color:#559080}
+.impact-intro{max-width:365px;color:#61756f;font-size:15px;line-height:1.8;margin:0 0 4px}
+.impact-layout{display:grid;grid-template-columns:minmax(270px,.85fr) minmax(0,2fr);gap:24px;align-items:stretch}
+.impact-feature{background:#103f38;color:#eefaf3;border-radius:24px;padding:28px;display:flex;flex-direction:column;overflow:hidden;position:relative;background-image:radial-gradient(ellipse at 100% 40%,#1d6052 0,transparent 70%)}
+.impact-feature-top{display:flex;justify-content:space-between;align-items:center;font-size:10px;letter-spacing:.18em;color:#b1d6c8}
+.impact-feature-mark{border:1px solid #588478;border-radius:50%;width:28px;height:28px;display:grid;place-items:center;font-size:18px}
+.impact-vision{width:100%;max-width:360px;align-self:center;margin:8px 0;color:#9eead8;flex:1;min-height:180px}
+.impact-feature-copy h3{font-size:clamp(28px,3vw,38px);line-height:1.12;font-weight:500;letter-spacing:-.03em;margin-bottom:18px}
+.impact-feature-copy p{font-size:13px;line-height:1.9;color:#b2d0c4}
+.impact-feature-footer{display:flex;gap:12px;align-items:center;border-top:1px solid #477064;padding-top:20px;margin-top:28px;font-size:10px;line-height:1.6;letter-spacing:.015em;color:#c0d8ce}
+.impact-small-cross{font-size:30px;font-weight:300;color:#d9c99e}
+.impact-results{min-width:0}
+.impact-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;align-content:start}
+.impact-stat{padding:20px;background:#fff;border:1px solid #e4ebe3;border-radius:16px;position:relative;transition:transform .25s,box-shadow .25s,border-color .25s;min-width:0}
+.impact-stat:hover{transform:translateY(-4px);box-shadow:0 12px 28px #244a3710;border-color:#93bdac}
+.impact-icon{width:32px;height:32px;display:grid;place-items:center;border-radius:9px;background:#e9f4ef;color:#33856d;margin-bottom:14px;transition:transform .3s}
+.impact-icon svg{width:21px;height:21px}
+.impact-icon-community{background:#faf0e2;color:#a27839}
+.impact-icon-training{background:#eaeef7;color:#6274a0}
+.impact-stat:hover .impact-icon{transform:rotate(-8deg) scale(1.08)}
+.impact-value{font-family:Outfit,sans-serif;font-size:clamp(25px,2.6vw,36px);line-height:1.1;font-weight:600;letter-spacing:-.04em;white-space:nowrap;margin-bottom:7px}
+.impact-label{font-size:11px;line-height:1.5;color:#65786c;max-width:190px}
+.impact-visible .impact-stat{animation:impact-enter .55s both;animation-delay:var(--impact-delay)}
+@keyframes impact-enter{from{opacity:0;translate:0 12px}to{opacity:1;translate:0 0}}
+@media(max-width:1023px){.impact-layout{grid-template-columns:1fr}.impact-feature{display:grid;grid-template-columns:1fr 1fr;align-items:center;gap:12px}.impact-feature-top{grid-column:1/-1}.impact-vision{grid-column:2;grid-row:2/4;min-height:0;max-height:240px}.impact-feature-copy{grid-column:1;grid-row:2}.impact-feature-footer{grid-column:1;grid-row:3;margin-top:0}.impact-intro{max-width:300px}}
+@media(max-width:600px){.impact-section{padding:52px 0 36px}.impact-heading{display:block;margin-bottom:26px}.impact-intro{margin-top:20px;max-width:none;font-size:14px}.impact-feature{padding:20px}.impact-feature-copy h3{font-size:25px}.impact-feature-copy p{display:none}.impact-feature-footer{grid-column:1/-1}.impact-vision{grid-row:2}.impact-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.impact-stat{padding:18px}.impact-value{font-size:29px}}
+@media(prefers-reduced-motion:reduce){.impact-section *,.impact-section *::before{animation:none!important;transition:none!important}.impact-stat:hover{transform:none}}
+
+.impact-gaze{transition:transform 180ms ease-out;will-change:transform}
+.impact-eye-art{filter:drop-shadow(0 14px 15px #041d2060)}
+@media(prefers-reduced-motion:reduce){.impact-gaze{transition:none}}

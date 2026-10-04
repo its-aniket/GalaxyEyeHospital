@@ -1,0 +1,26 @@
+.brand-intro{position:fixed;inset:0;z-index:1000;display:grid;place-items:center;background:#fcfdfb;color:#153f39;overflow:hidden}
+.brand-intro::before{content:"";position:absolute;width:min(85vw,950px);aspect-ratio:1;border-radius:50%;background:radial-gradient(circle,#e4f1df70,transparent 65%);pointer-events:none}
+.brand-intro-scene{position:relative;width:100%;display:flex;flex-direction:column;align-items:center;animation:brand-exit .55s 5.05s ease-in both}
+.brand-intro-preview .brand-intro-scene{animation:none}
+.brand-intro-lockup{position:relative;width:min(850px,90vw);height:320px;display:flex;align-items:center;justify-content:center}
+.brand-intro-emblem{position:absolute;left:50%;width:290px;height:290px;transform:translateX(-50%);animation:brand-position 1.05s 2.8s cubic-bezier(.22,1,.36,1) both}
+.brand-intro-emblem svg{display:block;width:100%;height:100%;overflow:visible}
+.brand-intro-wordmark{position:absolute;left:320px;right:0;opacity:0;animation:brand-name .85s 3.2s cubic-bezier(.22,1,.36,1) both}
+.brand-intro-kicker{text-transform:uppercase;font-size:10px;letter-spacing:.25em;color:#68867c;font-weight:600;margin-bottom:18px}
+.brand-intro-name{font-family:Outfit,sans-serif;font-weight:600;font-size:clamp(36px,4.3vw,62px);line-height:1.08;letter-spacing:-.045em;white-space:nowrap}
+.brand-intro-name span{display:block;font-weight:400}
+.brand-intro-rule{width:45px;height:2px;background:linear-gradient(90deg,#64a624,#087bbb);margin:23px 0 16px;transform-origin:left;animation:brand-rule .6s 3.65s both}
+.brand-intro-specialties{font-size:15px;letter-spacing:.015em;color:#64796f}
+.brand-intro-caption{position:absolute;top:calc(100% + 35px);font-size:12px;letter-spacing:.06em;color:#7c8c82;opacity:0;animation:brand-name .7s 3.85s both;text-align:center;padding:0 24px}
+.brand-intro-controls{position:absolute;bottom:32px;right:36px;left:36px;display:flex;justify-content:flex-end;gap:24px}
+.brand-intro-controls button{display:flex;gap:16px;align-items:center;padding:10px 4px;font-size:12px;color:#597165;background:transparent;border:0;cursor:pointer}
+.brand-intro-controls button:hover{color:#084b37}
+.brand-intro-controls button:focus-visible{outline:2px solid #0a7056;outline-offset:5px;border-radius:3px}
+@keyframes brand-position{from{left:50%;transform:translateX(-50%)}to{left:0;transform:translateX(0)}}
+@keyframes brand-name{from{opacity:0;translate:20px 0;filter:blur(4px)}to{opacity:1;translate:0 0;filter:blur(0)}}
+@keyframes brand-rule{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@keyframes brand-exit{to{opacity:0;transform:translateY(-10px)}}
+@media(max-width:700px){.brand-intro-lockup{height:360px;width:92vw}.brand-intro-emblem{width:210px;height:210px;top:70px;animation-name:brand-position-mobile}.brand-intro-wordmark{left:0;right:0;top:220px;text-align:center}.brand-intro-name{font-size:35px;white-space:normal}.brand-intro-name span{display:inline}.brand-intro-kicker{font-size:9px;margin-bottom:12px}.brand-intro-rule{margin:15px auto}.brand-intro-specialties{font-size:12px}.brand-intro-controls{bottom:20px;left:22px;right:22px}.brand-intro-caption{font-size:10px;top:calc(100% + 8px)}}
+@keyframes brand-position-mobile{from{top:70px;transform:translateX(-50%) scale(1.2)}to{top:0;transform:translateX(-50%) scale(.9)}}
+@media(prefers-reduced-motion:reduce){.brand-intro-scene{animation:none}.brand-intro-emblem{animation:none;left:0;transform:none}.brand-intro-wordmark,.brand-intro-caption{animation:none;opacity:1}.brand-intro-rule{animation:none}}
+@media(max-width:700px) and (prefers-reduced-motion:reduce){.brand-intro-emblem{top:0;left:50%;transform:translateX(-50%) scale(.9)}}

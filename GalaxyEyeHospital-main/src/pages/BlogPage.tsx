@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { blogCategories } from "../types";
+import { blogCategories, type BlogPost } from "../types";
 import { useQuery } from "../hooks/useQuery";
 import { getBlogPosts } from "../services/api";
 
@@ -37,6 +37,48 @@ const TrendingIcon = () => (
 const BookmarkIcon = ({ filled = false, size = 20 }: { filled?: boolean; size?: number }) => (
   <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill={filled ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>
 );
+
+const blogVisuals = [
+  "/images/blog-lasik.png",
+  "/images/blog-eye-health.png",
+  "/images/blog-glaucoma.png",
+  "/images/blog-cataract.png",
+  "/images/blog-pediatric.png",
+  "/images/blog-nutrition.png",
+];
+
+const blogVisualByCategory: Record<string, string> = {
+  LASIK: "/images/blog-lasik.png",
+  "Eye Health": "/images/blog-eye-health.png",
+  Glaucoma: "/images/blog-glaucoma.png",
+  Cataract: "/images/blog-cataract.png",
+  Pediatric: "/images/blog-pediatric.png",
+  Nutrition: "/images/blog-nutrition.png",
+};
+
+const fallbackPosts: BlogPost[] = [
+  { id: 1001, slug: "lasik-vision-correction-guide", title: "Is LASIK Right for You? A Clear Guide to Vision Correction", excerpt: "Understand candidacy, the consultation process, and what to expect from modern laser vision correction.", content: "LASIK can reduce dependence on glasses or contact lenses for many eligible adults. A detailed eye examination is the first step in deciding whether it is right for you.\n\n## Start with a complete assessment\nYour ophthalmologist will check corneal thickness, prescription stability, tear health, and the overall health of your eyes before recommending a treatment.", author: "Galaxy Eye Care Team", date: "September 5, 2026", category: "LASIK", readTime: "5 min read", views: 1240, likes: 86, image: blogVisuals[0], trending: true, tags: ["LASIK", "Vision Correction"] },
+  { id: 1002, slug: "why-regular-eye-checkups-matter", title: "Why Regular Eye Checkups Matter at Every Age", excerpt: "A routine eye exam can help protect both your vision and your overall wellbeing.", content: "Many eye conditions develop gradually and may not cause noticeable symptoms early on. Regular eye examinations help identify changes before they affect day-to-day vision.\n\n## Prevention begins with screening\nYour eye-care professional can recommend an examination schedule based on your age, health, and visual needs.", author: "Galaxy Eye Care Team", date: "August 28, 2026", category: "Eye Health", readTime: "4 min read", views: 980, likes: 64, image: blogVisuals[0], trending: false, tags: ["Eye Health", "Eye Exam"] },
+  { id: 1003, slug: "understanding-cataract-care", title: "Understanding Cataracts and Today’s Treatment Options", excerpt: "Learn the common signs of cataracts and how modern care can restore clearer, more comfortable vision.", content: "Cataracts are a natural clouding of the eye’s lens that can make colours look dull, increase glare, and blur vision.\n\n## Personalised cataract care\nA consultation helps determine how cataracts affect your daily life and which treatment approach best supports your visual goals.", author: "Galaxy Eye Care Team", date: "August 16, 2026", category: "Cataract", readTime: "6 min read", views: 1130, likes: 75, image: blogVisuals[1], trending: false, tags: ["Cataract", "Clear Vision"] },
+  { id: 1004, slug: "glaucoma-screening-protects-vision", title: "Glaucoma Screening: Protecting Vision You May Not Notice Losing", excerpt: "Glaucoma often develops quietly, making scheduled screening especially important for at-risk adults.", content: "Glaucoma can damage the optic nerve without early warning signs. Screening measures eye pressure and checks the health of the optic nerve.\n\n## Early detection makes a difference\nYour ophthalmologist can create a monitoring and treatment plan suited to your eye health.", author: "Galaxy Eye Care Team", date: "August 2, 2026", category: "Glaucoma", readTime: "5 min read", views: 890, likes: 58, image: blogVisuals[0], trending: false, tags: ["Glaucoma", "Screening"] },
+  { id: 1005, slug: "childrens-eye-exams", title: "When Should Children Have Their Eyes Examined?", excerpt: "Early eye examinations support comfortable learning, confident play, and healthy visual development.", content: "Children do not always recognise or explain a vision concern. Age-appropriate examinations can identify focusing, alignment, and visual-development issues.\n\n## Make eye care part of growing up\nAsk an eye-care professional when your child should be assessed, especially if you notice squinting or frequent headaches.", author: "Galaxy Eye Care Team", date: "July 20, 2026", category: "Pediatric", readTime: "4 min read", views: 760, likes: 49, image: blogVisuals[2], trending: false, tags: ["Pediatric", "Children's Vision"] },
+  { id: 1006, slug: "nutrition-for-healthy-eyes", title: "Simple Nutrition Habits That Support Eye Health", excerpt: "Colourful vegetables, fruit, and healthy fats can be part of a balanced routine for lifelong eye health.", content: "A varied diet supports overall wellbeing, including the nutrients your eyes need. Leafy greens and brightly coloured fruits and vegetables are useful additions to balanced meals.\n\n## Pair nutrition with professional care\nHealthy habits complement, but do not replace, regular eye examinations and advice from your eye-care team.", author: "Galaxy Eye Care Team", date: "July 8, 2026", category: "Nutrition", readTime: "3 min read", views: 690, likes: 44, image: "/images/blog-nutrition.png", trending: false, tags: ["Nutrition", "Eye Health"] },
+];
+
+const useLocalBlogImages = (posts?: BlogPost[] | null) => {
+  if (!posts?.length) {
+    return fallbackPosts.map((post) => ({
+      ...post,
+      image: blogVisualByCategory[post.category] ?? post.image,
+    }));
+  }
+  return posts.map((post, index) => {
+    const isPlaceholder = !post.image || /(?:hero\.png|placeholder|dummy)/i.test(post.image);
+    return isPlaceholder
+      ? { ...post, image: blogVisualByCategory[post.category] ?? blogVisuals[index % blogVisuals.length] }
+      : post;
+  });
+};
 const ArrowRightIcon = ({ size = 16 }: { size?: number }) => (
   <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
 );
@@ -48,7 +90,7 @@ function BlogListing({ onSelectPost }: { onSelectPost: (slug: string) => void })
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
 
-  const allPosts = blogPosts ?? [];
+  const allPosts = useLocalBlogImages(blogPosts);
   const filteredPosts = useMemo(() => {
     return allPosts.filter((post) => {
       const matchesCategory = selectedCategory === "All" || post.category === selectedCategory;
@@ -250,12 +292,8 @@ function BlogListing({ onSelectPost }: { onSelectPost: (slug: string) => void })
 function BlogDetail({ slug, onBack }: { slug: string; onBack: () => void }) {
   const { data: blogPosts } = useQuery(getBlogPosts);
 
-  const allPosts = blogPosts ?? [];
+  const allPosts = useLocalBlogImages(blogPosts);
   const blog = useMemo(() => allPosts.find((b) => b.slug === slug), [slug, allPosts]);
-  const relatedPosts = useMemo(
-    () => (blog ? allPosts.filter((p) => p.id !== blog.id && p.category === blog.category).slice(0, 3) : []),
-    [blog, allPosts]
-  );
 
   const [isLiked, setIsLiked] = useState(false);
   const [likes, setLikes] = useState(blog?.likes ?? 0);
@@ -400,12 +438,10 @@ function BlogDetail({ slug, onBack }: { slug: string; onBack: () => void }) {
         </div>
       </div>
 
-      {/* Content + Sidebar */}
+      {/* Article */}
       <div className="bg-gray-50 py-12">
         <div className="container mx-auto px-4 md:px-6 max-w-5xl">
-          <div className="grid lg:grid-cols-3 gap-10">
-            {/* Article */}
-            <article className="lg:col-span-2 bg-white rounded-2xl p-6 md:p-10 shadow-md">
+            <article className="bg-white rounded-2xl p-6 md:p-10 shadow-md">
               {renderContent()}
 
               {/* Tags */}
@@ -445,59 +481,6 @@ function BlogDetail({ slug, onBack }: { slug: string; onBack: () => void }) {
                 </button>
               </div>
             </article>
-
-            {/* Sidebar */}
-            <aside className="space-y-6">
-              {/* Reading Progress */}
-              <div className="bg-white rounded-2xl p-6 shadow-md sticky top-24">
-                <h3 className="font-[Outfit] font-bold text-gray-900 mb-4">Reading Progress</h3>
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="flex-1 bg-gray-200 rounded-full h-2">
-                    <div
-                      className="bg-linear-to-r from-[hsl(var(--primary))] to-[hsl(var(--accent))] h-2 rounded-full transition-all duration-300"
-                      style={{ width: `${scrollProgress}%` }}
-                    />
-                  </div>
-                  <span className="text-sm font-medium text-gray-500">{Math.round(scrollProgress)}%</span>
-                </div>
-
-                {/* Related Posts */}
-                {relatedPosts.length > 0 && (
-                  <div className="pt-6 border-t border-gray-100">
-                    <h3 className="font-[Outfit] font-bold text-gray-900 mb-4">Related Articles</h3>
-                    <div className="space-y-4">
-                      {relatedPosts.map((post) => (
-                        <button
-                          key={post.id}
-                          onClick={() => {
-                            onBack();
-                            // Small delay to let listing mount, then open detail
-                            setTimeout(() => {
-                              const event = new CustomEvent("openBlogPost", { detail: post.slug });
-                              window.dispatchEvent(event);
-                            }, 50);
-                          }}
-                          className="group flex gap-3 w-full text-left"
-                        >
-                          <img
-                            src={post.image}
-                            alt={post.title}
-                            className="w-14 h-14 rounded-lg object-cover shrink-0 group-hover:scale-105 transition-transform"
-                          />
-                          <div className="flex-1 min-w-0">
-                            <h4 className="font-semibold text-gray-900 text-sm leading-snug line-clamp-2 group-hover:text-[hsl(var(--primary))] transition-colors">
-                              {post.title}
-                            </h4>
-                            <p className="text-xs text-gray-400 mt-1">{post.readTime}</p>
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </aside>
-          </div>
         </div>
       </div>
     </>

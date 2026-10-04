@@ -1,3 +1,5 @@
+import PhoneNumber from "./PhoneNumber";
+import { phoneHref } from "../lib/phone";
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 
@@ -23,13 +25,13 @@ export default function Navbar() {
         <Link to="/" className="flex items-center shrink-0">
           <img
             alt="Galaxy Eye Hospital"
-            className="h-10 lg:h-12 w-auto object-contain"
+            className="h-12 lg:h-14 w-auto object-contain"
             src="/logo.png"
           />
         </Link>
 
-        {/* Desktop nav links — shown from lg (1024px) upward */}
-        <div className="hidden lg:flex items-center gap-3 xl:gap-5 min-w-0 flex-1 justify-center">
+        {/* Desktop nav links — shown from xl (1280px) upward */}
+        <div className="hidden xl:flex items-center gap-3 xl:gap-5 min-w-0 flex-1 justify-center">
           {navLinks.map((link) => {
             const isActive =
               location.pathname === link.href ||
@@ -54,28 +56,28 @@ export default function Navbar() {
           })}
         </div>
 
-        {/* Desktop actions — shown from lg (1024px) upward */}
-        <div className="hidden lg:flex items-center gap-2 xl:gap-3 shrink-0">
+        {/* Desktop actions — shown from xl (1280px) upward */}
+        <div className="hidden xl:flex items-center gap-2 xl:gap-3 shrink-0">
           <a
-            href="tel:+918087808797"
+            href={phoneHref("8087808797")}
             className="flex items-center gap-1 text-[hsl(var(--primary))] font-semibold text-xs xl:text-sm hover:text-[hsl(var(--accent))] transition-colors whitespace-nowrap"
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M13.832 16.568a1 1 0 0 0 1.213-.303l.355-.465A2 2 0 0 1 17 15h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2A18 18 0 0 1 2 4a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v3a2 2 0 0 1-.8 1.6l-.468.351a1 1 0 0 0-.292 1.233 14 14 0 0 0 6.392 6.384" />
             </svg>
-            <span>8087808797</span>
+            <PhoneNumber value="8087808797" />
           </a>
           <Link
-            to="/contact"
+            to="/#appointment"
             className="px-2.5 xl:px-4 py-1.5 xl:py-2 bg-[hsl(var(--primary))] hover:bg-[hsl(var(--primary))]/90 text-white text-xs xl:text-sm font-medium rounded-md shadow-lg shadow-[hsl(var(--primary))]/20 transition-all hover:-translate-y-0.5 whitespace-nowrap"
           >
             Book Appointment
           </Link>
         </div>
 
-        {/* Hamburger — visible below lg (1024px) */}
+        {/* Hamburger — visible below xl (1024px) */}
         <button
-          className="lg:hidden ml-auto p-2 text-gray-600"
+          className="xl:hidden ml-auto p-2 text-gray-600"
           onClick={() => setMobileOpen(!mobileOpen)}
           aria-label={mobileOpen ? "Close menu" : "Open menu"}
         >
@@ -94,9 +96,9 @@ export default function Navbar() {
         </button>
       </div>
 
-      {/* Mobile menu — slides in below lg */}
+      {/* Mobile menu — slides in below xl */}
       {mobileOpen && (
-        <div className="lg:hidden bg-white border-t border-gray-100 px-4 py-4 space-y-1">
+        <div className="xl:hidden bg-white border-t border-gray-100 px-4 py-4 space-y-1">
           {navLinks.map((link) => {
             const isActive =
               location.pathname === link.href ||
@@ -118,16 +120,16 @@ export default function Navbar() {
           })}
           <div className="pt-2 border-t border-gray-100 flex flex-col gap-2">
             <a
-              href="tel:+918087808797"
+              href={phoneHref("8087808797")}
               className="flex items-center gap-2 text-[hsl(var(--primary))] font-semibold text-sm py-2 px-2"
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M13.832 16.568a1 1 0 0 0 1.213-.303l.355-.465A2 2 0 0 1 17 15h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2A18 18 0 0 1 2 4a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v3a2 2 0 0 1-.8 1.6l-.468.351a1 1 0 0 0-.292 1.233 14 14 0 0 0 6.392 6.384" />
               </svg>
-              8087808797
+              <PhoneNumber value="8087808797" />
             </a>
             <Link
-              to="/contact"
+              to="/#appointment"
               onClick={() => setMobileOpen(false)}
               className="block w-full px-4 py-2.5 bg-[hsl(var(--primary))] text-white text-sm font-medium rounded-md text-center"
             >

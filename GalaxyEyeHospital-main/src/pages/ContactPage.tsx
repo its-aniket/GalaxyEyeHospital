@@ -1,7 +1,9 @@
+import PhoneNumber from "../components/PhoneNumber";
+import { phoneHref } from "../lib/phone";
 import { useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "../hooks/useQuery";
-import { getContactInfo, getBranches, getHospitalInfo } from "../services/api";
+import { createContactMessage, getContactInfo, getBranches, getHospitalInfo } from "../services/api";
 import LoadingSpinner from "../components/LoadingSpinner";
 
 /* ─── Icon Helpers ─── */
@@ -40,13 +42,27 @@ export default function ContactPage() {
   });
 
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    // Form submission logic here (connect to backend later)
-    setSubmitted(true);
-    setTimeout(() => setSubmitted(false), 4000);
-    setFormData({ name: "", phone: "", email: "", message: "" });
+    setSubmitting(true);
+    setSubmitError(null);
+    try {
+      await createContactMessage({
+        fullName: formData.name,
+        phone: formData.phone,
+        email: formData.email,
+        message: formData.message,
+      });
+      setSubmitted(true);
+      setFormData({ name: "", phone: "", email: "", message: "" });
+    } catch (error) {
+      setSubmitError(error instanceof Error ? error.message : "Unable to send your message right now. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   if (!contactInfo || !hospitalInfo) return <LoadingSpinner />;
@@ -137,7 +153,7 @@ export default function ContactPage() {
                 <div className="space-y-3 mb-6">
                   <div className="flex items-center gap-3 text-sm text-gray-600">
                     <PhoneIcon />
-                    <span>Phone: <strong>{branch.phone}</strong></span>
+                    <span>Phone: <strong><PhoneNumber value={branch.phone} /></strong></span>
                   </div>
                   <div className="flex items-center gap-3 text-sm text-gray-600">
                     <MailIcon />
@@ -157,7 +173,7 @@ export default function ContactPage() {
                     Google Map
                   </a>
                   <a
-                    href={`tel:${branch.phone.replace(/\s/g, "")}`}
+                    href={phoneHref(branch.phone)}
                     className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-[hsl(var(--accent))] text-white rounded-lg hover:bg-[hsl(var(--accent))]/90 transition-colors text-sm font-medium"
                   >
                     <PhoneIcon />
@@ -196,7 +212,7 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <h4 className="font-semibold text-[hsl(var(--foreground))] text-sm">Phone</h4>
-                    <p className="text-gray-500 text-sm">{contactInfo.primaryPhone}</p>
+                    <p className="text-gray-500 text-sm"><PhoneNumber value={contactInfo.primaryPhone} /></p>
                   </div>
                 </div>
 
@@ -293,12 +309,14 @@ export default function ContactPage() {
                   </div>
 
                   {/* Submit */}
+                  {submitError && <p role="alert" className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-800">{submitError}</p>}
                   <button
                     type="submit"
+                    disabled={submitting}
                     className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-[hsl(var(--accent))] text-white rounded-lg font-semibold hover:bg-[hsl(var(--accent))]/90 transition-colors shadow-lg shadow-[hsl(var(--accent))]/20"
                   >
                     <SendIcon />
-                    Submit
+                    {submitting ? "Sending…" : "Submit"}
                   </button>
                 </form>
               )}
@@ -318,19 +336,19 @@ export default function ContactPage() {
               Need Urgent Assistance?
             </h2>
             <p className="text-white/70 text-lg">
-              Call us now at <strong className="text-[hsl(var(--accent))]">{contactInfo.tollFree}</strong> — our team is ready to help.
+              Call us now at <strong className="text-[hsl(var(--accent))]"><PhoneNumber value={contactInfo.tollFree} /></strong> — our team is ready to help.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <a
-                href={`tel:${contactInfo.primaryPhone.replace(/\s/g, "")}`}
-                className="inline-flex items-center gap-2 px-8 py-3.5 bg-[hsl(var(--accent))] text-white rounded-lg font-semibold hover:bg-[hsl(var(--accent))]/90 transition-colors shadow-lg shadow-[hsl(var(--accent))]/20"
+                href={phoneHref(contactInfo.primaryPhone)}
+                className="inline-flex items-center gap-2 px-8 py-3.5 bg-[hsl(var(--accent))] text-white rounded-lg font-semibold hover:bg-[hsl(var(--accent))]/90 transition-colors shadow-lg shadow-[hsl(var(--accent))]/20 justify-center text-center"
               >
                 <PhoneIcon />
                 Call Now
               </a>
               <Link
                 to="/services"
-                className="inline-flex items-center gap-2 px-8 py-3.5 border-2 border-white/30 text-white rounded-lg font-semibold hover:bg-white/10 transition-colors"
+                className="inline-flex items-center gap-2 px-8 py-3.5 border-2 border-white/30 text-white rounded-lg font-semibold hover:bg-white/10 transition-colors justify-center text-center"
               >
                 View Services
               </Link>

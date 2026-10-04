@@ -1,3 +1,5 @@
+import PhoneNumber from "../components/PhoneNumber";
+import { phoneHref } from "../lib/phone";
 import { Link } from "react-router-dom";
 import { useQuery } from "../hooks/useQuery";
 import { getDoctors, getContactInfo } from "../services/api";
@@ -43,10 +45,18 @@ const values = [
 
 /* ─── Impact Stats ─── */
 const impactStats = [
-  { icon: <ClockIcon />, value: "40+", label: "Years of Excellence" },
-  { icon: <UsersIcon />, value: "95,000+", label: "Patients Served" },
-  { icon: <MapPinIcon />, value: "Multiple", label: "Branches in Maharashtra" },
-  { icon: <AwardIcon />, value: "15+", label: "Awards & Recognitions" },
+  { icon: <MapPinIcon />, value: "72", label: "Hospital beds" },
+  { icon: <MapPinIcon />, value: "5", label: "Operation theatres" },
+  { icon: <UsersIcon />, value: "1,80,000+", label: "Patients checked so far" },
+  { icon: <EyeIcon />, value: "2.5 lakh", label: "Eye surgeries performed" },
+  { icon: <EyeIcon />, value: "250", label: "Eyeballs collected" },
+  { icon: <ClockIcon />, value: "30", label: "Blood donation camps" },
+  { icon: <AwardIcon />, value: "12,000", label: "Blood bottles collected" },
+  { icon: <MapPinIcon />, value: "6", label: "Mobile vans" },
+  { icon: <MapPinIcon />, value: "4.2 lakh", label: "Patients checked via vans" },
+  { icon: <AwardIcon />, value: "50", label: "Trainees, Mirashi Nursing School" },
+  { icon: <UsersIcon />, value: "500+", label: "Fresh doctors trained" },
+  { icon: <UsersIcon />, value: "9,000", label: "Students checked" },
 ];
 
 export default function AboutPage() {
@@ -105,8 +115,8 @@ export default function AboutPage() {
               <div className="absolute -inset-4 bg-linear-to-tr from-[hsl(var(--accent))]/20 to-white/5 rounded-3xl blur-2xl" />
               <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-white/10">
                 <img
-                  src="/hero.png"
-                  alt="Galaxy Eye Hospital"
+                  src="/images/about-clinic.png"
+                  alt="An ophthalmologist consulting with a patient at Galaxy Eye Hospital"
                   className="w-full h-105 object-cover"
                 />
                 <div className="absolute bottom-6 left-6 bg-white/95 backdrop-blur-md p-4 rounded-xl shadow-lg max-w-52">
@@ -252,7 +262,7 @@ export default function AboutPage() {
           </div>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
-            {(doctors ?? []).map((doc) => (
+            {(doctors ?? []).map((doc, index) => (
               <div
                 key={doc.name}
                 className="group rounded-2xl bg-white shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden relative"
@@ -263,9 +273,10 @@ export default function AboutPage() {
                 {/* Image */}
                 <div className="relative h-64 overflow-hidden bg-gray-100">
                   <img
-                    src={doc.image}
+                    src={doc.image?.includes("hero.png") ? "/images/doctor-team.png" : doc.image}
                     alt={doc.name}
                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    style={doc.image?.includes("hero.png") ? { objectPosition: ["0% 0%", "100% 0%", "0% 100%", "100% 100%"][index % 4] } : undefined}
                   />
                   <div className="absolute inset-0 bg-linear-to-t from-black/40 to-transparent" />
                   <div className="absolute bottom-4 left-4 right-4">
@@ -325,17 +336,17 @@ export default function AboutPage() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
               to="/contact"
-              className="px-8 py-4 bg-white text-[hsl(var(--primary))] font-semibold rounded-lg hover:bg-gray-100 transition-colors shadow-lg inline-flex items-center gap-2"
+              className="px-8 py-4 bg-white text-[hsl(var(--primary))] font-semibold rounded-lg hover:bg-gray-100 transition-colors shadow-lg inline-flex items-center gap-2 justify-center text-center"
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg>
               Book Appointment
             </Link>
             <a
-              href={`tel:${contactInfo.primaryPhone.replace(/\s/g, "")}`}
-              className="px-8 py-4 border-2 border-white text-white font-semibold rounded-lg hover:bg-white/10 transition-colors inline-flex items-center gap-2"
+              href={phoneHref(contactInfo.primaryPhone)}
+              className="px-8 py-4 border-2 border-white text-white font-semibold rounded-lg hover:bg-white/10 transition-colors inline-flex items-center gap-2 justify-center text-center"
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-              Call: {contactInfo.tollFree}
+              Call: <PhoneNumber value={contactInfo.tollFree} />
             </a>
           </div>
         </div>

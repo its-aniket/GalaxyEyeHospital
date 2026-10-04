@@ -5,10 +5,10 @@ import AppointmentSection from "../components/AppointmentSection";
 import WhyChooseUs from "../components/WhyChooseUs";
 import CTABanner from "../components/CTABanner";
 
-export default function HomePage() {
+export default function HomePage({ heroReady = true }: { heroReady?: boolean }) {
   return (
     <>
-      <Hero />
+      <Hero ready={heroReady} />
       <Stats />
       <Services />
       <AppointmentSection />

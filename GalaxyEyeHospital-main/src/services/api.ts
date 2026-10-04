@@ -32,6 +32,24 @@ type HomeConsultationLeadPayload = {
   spamTrap?: string;
 };
 
+type ContactMessagePayload = {
+  fullName: string;
+  phone: string;
+  email: string;
+  message: string;
+};
+
+export async function createContactMessage(payload: ContactMessagePayload): Promise<void> {
+  const { error } = await supabase.from('contact_messages').insert({
+    full_name: payload.fullName.trim(),
+    phone: payload.phone.trim(),
+    email: payload.email.trim() || null,
+    message: payload.message.trim(),
+    status: 'New',
+  });
+  if (error) throw error;
+}
+
 async function compressConsultationPhoto(file: File): Promise<File> {
   if (!file.type.startsWith("image/")) {
     return file;

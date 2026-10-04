@@ -1,160 +1,179 @@
-import { useState } from "react";
-import { useQuery } from "../hooks/useQuery";
-import { getBranches, getAppointmentTimeSlots } from "../services/api";
+import { useEffect, useRef, useState } from 'react';
+import type { FormEvent } from 'react';
+import { useQuery } from '../hooks/useQuery';
+import { getBranches, getAppointmentTimeSlots } from '../services/api';
+import { requestAppointment } from '../services/appointments';
+import type { AppointmentReceipt } from '../services/appointments';
+import { hospitalDate, isFutureSlot, lastAppointmentDate, normalizePhone, validateContact } from '../lib/appointmentForm';
+import ThemedSelect from './ThemedSelect';
 
-const today = new Date();
-const months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
-const days = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
-
-function generateCalendarDays() {
-  const year = today.getFullYear();
-  const month = today.getMonth();
-  const firstDay = new Date(year, month, 1).getDay();
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
-  const cells: (number | null)[] = [];
-  for (let i = 0; i < firstDay; i++) cells.push(null);
-  for (let d = 1; d <= daysInMonth; d++) cells.push(d);
-  return cells;
-}
+const inputClass = 'w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-700 focus:ring-2 focus:ring-[hsl(var(--accent))] focus:border-transparent outline-none disabled:opacity-60';
+const cardClass = 'bg-white rounded-xl shadow-md p-6 space-y-4';
 
 export default function AppointmentSection() {
-  const { data: branches } = useQuery(getBranches);
-  const { data: timeSlots } = useQuery(getAppointmentTimeSlots);
-  const branchNames = (branches ?? []).map((b) => b.name);
+  const { data: branches, loading: branchesLoading, error: branchError } = useQuery(getBranches);
+  const { data: timeSlots, loading: slotsLoading, error: slotError } = useQuery(getAppointmentTimeSlots);
+  const [now, setNow] = useState(() => new Date());
+  const [branchId, setBranchId] = useState<number | null>(null);
+  const [date, setDate] = useState(() => hospitalDate());
+  const [time, setTime] = useState('');
+  const [fullName, setFullName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [email, setEmail] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [receipt, setReceipt] = useState<AppointmentReceipt | null>(null);
+  const inFlight = useRef(false);
+  const attempt = useRef<{ payload: string; key: string } | null>(null);
+  const feedback = useRef<HTMLDivElement>(null);
 
-  const [selectedBranch, setSelectedBranch] = useState("");
-  const [selectedDate, setSelectedDate] = useState(today.getDate());
-  const [selectedTime, setSelectedTime] = useState("10:00 AM");
-  const calendarDays = generateCalendarDays();
+  useEffect(() => {
+    const timer = window.setInterval(() => setNow(new Date()), 30_000);
+    return () => window.clearInterval(timer);
+  }, []);
+  useEffect(() => {
+    if (receipt || error) feedback.current?.focus();
+  }, [receipt, error]);
 
-  // Set default branch once data loads
-  const activeBranch = selectedBranch || branchNames[0] || "";
+  const activeBranch = branches?.find((branch) => branch.id === branchId) ?? branches?.[0];
+  const slots = [...new Set(timeSlots ?? [])];
+  const today = hospitalDate(now);
+  const maxDate = lastAppointmentDate(now);
+  const validDate = date >= today && date <= maxDate;
+  const activeTime = slots.includes(time) && validDate && isFutureSlot(date, time, now) ? time : '';
+  const loading = branchesLoading || slotsLoading;
+  const unavailable = !!branchError || !!slotError || !branches?.length || !slots.length;
+  const locked = submitting || !!receipt;
 
-  if (!branches) return null;
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (inFlight.current || receipt) return;
+    setError(null);
+    const contactError = validateContact(fullName, phone, email);
+    const current = new Date();
+    if (contactError) { setError(contactError); return; }
+    if (!activeBranch || unavailable) { setError('Appointment scheduling is unavailable. Please try again later.'); return; }
+    if (date < hospitalDate(current) || date > lastAppointmentDate(current) || !activeTime || !isFutureSlot(date, activeTime, current)) {
+      setError('Choose a future date and time within the next 90 days.'); return;
+    }
+    const details = {
+      branchId: activeBranch.id, appointmentDate: date, timeSlot: activeTime,
+      fullName: fullName.trim(), phone: normalizePhone(phone), email: email.trim().toLowerCase(),
+    };
+    const payload = JSON.stringify(details);
+    inFlight.current = true;
+    setSubmitting(true);
+    try {
+      // Keep retries stable after uncertain network responses; don't persist patient data.
+      if (attempt.current?.payload !== payload) attempt.current = { payload, key: crypto.randomUUID() };
+      const result = await requestAppointment({ ...details, requestKey: attempt.current.key });
+      setReceipt(result);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'Unable to submit your request. Please try again.');
+    } finally {
+      inFlight.current = false;
+      setSubmitting(false);
+    }
+  }
+
+  function startNewRequest() {
+    setReceipt(null); setError(null); setFullName(''); setPhone(''); setEmail('');
+    setTime(''); setDate(hospitalDate()); setNow(new Date()); attempt.current = null;
+  }
 
   return (
-    <section className="py-24 bg-white" id="appointment">
+    <section className="py-24 bg-white" id="appointment" aria-labelledby="appointment-title">
       <div className="container mx-auto px-4 md:px-6">
         <div className="text-center max-w-2xl mx-auto mb-16 space-y-4">
           <span className="text-[hsl(var(--accent))] font-semibold tracking-wider uppercase text-sm">Easy Scheduling</span>
-          <h2 className="text-3xl md:text-4xl font-[Outfit] font-bold text-[hsl(var(--primary))]">Book Your Appointment</h2>
-          <p className="text-gray-600 text-lg">Schedule a visit in just a few clicks — choose your branch, date, and time.</p>
+          <h2 id="appointment-title" className="text-3xl md:text-4xl font-[Outfit] font-bold text-[hsl(var(--primary))]">Book Your Appointment</h2>
+          <p className="text-gray-600 text-lg">Choose your preferred branch, date, and time. Your request is subject to hospital confirmation.</p>
         </div>
-
-        <div className="grid lg:grid-cols-3 gap-8">
-          {/* Left Column - Branch, Calendar, Time */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Branch */}
-            <div className="bg-white rounded-xl shadow-md p-6 space-y-3">
-              <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[hsl(var(--accent))]"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg>
-                Select Branch
-              </h3>
-              <select
-                className="w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-700 focus:ring-2 focus:ring-[hsl(var(--accent))] focus:border-transparent outline-none"
-                value={activeBranch}
-                onChange={(e) => setSelectedBranch(e.target.value)}
-              >
-                {branchNames.map((b) => <option key={b} value={b}>{b}</option>)}
-              </select>
-            </div>
-
-            {/* Calendar */}
-            <div className="bg-white rounded-xl shadow-md p-6">
-              <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2 mb-4">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[hsl(var(--accent))]"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg>
-                {months[today.getMonth()]} {today.getFullYear()}
-              </h3>
-              <div className="grid grid-cols-7 gap-1 text-center text-sm">
-                {days.map((d) => <div key={d} className="py-2 font-semibold text-gray-500">{d}</div>)}
-                {calendarDays.map((day, i) => (
-                  <button
-                    key={i}
-                    disabled={day === null || day < today.getDate()}
-                    onClick={() => day && setSelectedDate(day)}
-                    className={`py-2 rounded-lg text-sm transition-colors
-                      ${day === null ? "invisible" : ""}
-                      ${day !== null && day < today.getDate() ? "text-gray-300 cursor-not-allowed" : ""}
-                      ${day === selectedDate ? "bg-[hsl(var(--primary))] text-white font-bold" : ""}
-                      ${day === today.getDate() && day !== selectedDate ? "border border-[hsl(var(--accent))] text-[hsl(var(--accent))] font-semibold" : ""}
-                      ${day !== null && day > today.getDate() && day !== selectedDate ? "hover:bg-gray-100 text-gray-700" : ""}
-                    `}
-                  >
-                    {day}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Time Slots */}
-            <div className="bg-white rounded-xl shadow-md p-6">
-              <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2 mb-4">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[hsl(var(--accent))]"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                Available Time Slots
-              </h3>
-              <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
-                {(timeSlots ?? []).map((t) => (
-                  <button
-                    key={t}
-                    onClick={() => setSelectedTime(t)}
-                    className={`px-4 py-3 rounded-lg border text-sm font-medium transition-all
-                      ${selectedTime === t
-                        ? "bg-[hsl(var(--primary))] text-white border-[hsl(var(--primary))] shadow-md"
-                        : "border-gray-200 text-gray-600 hover:border-[hsl(var(--accent))] hover:text-[hsl(var(--accent))]"
-                      }
-                    `}
-                  >
-                    {t}
-                  </button>
-                ))}
-              </div>
-            </div>
+        {loading ? <p role="status" className="text-center text-gray-600">Loading appointment options…</p> : unavailable ? (
+          <div role="alert" className="text-center space-y-3 text-gray-700">
+            <p>Appointment scheduling is temporarily unavailable. Please reload or contact the hospital.</p>
+            <button type="button" onClick={() => window.location.reload()} className="underline">Reload appointment options</button>
           </div>
-
-          {/* Right Column - Booking Form */}
-          <div className="lg:col-span-1">
-            <div className="bg-white rounded-xl shadow-md p-6 sticky top-28 space-y-5">
-              <h3 className="text-lg font-bold text-gray-900">Your Details</h3>
-              <div className="space-y-4">
-                <div className="relative">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                  <input type="text" placeholder="Full Name" className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[hsl(var(--accent))] focus:border-transparent outline-none" />
-                </div>
-                <div className="relative">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-                  <input type="tel" placeholder="Phone Number" className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[hsl(var(--accent))] focus:border-transparent outline-none" />
-                </div>
-                <div className="relative">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
-                  <input type="email" placeholder="Email Address" className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[hsl(var(--accent))] focus:border-transparent outline-none" />
-                </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="grid lg:grid-cols-3 gap-8" aria-busy={submitting}>
+            <fieldset disabled={locked} className="lg:col-span-2 space-y-6 min-w-0">
+              <legend className="sr-only">Appointment preferences</legend>
+              <div className={cardClass}>
+                <h3 className="block text-lg font-bold text-gray-900">Select Branch</h3>
+                {activeBranch && <ThemedSelect value={activeBranch.id} ariaLabel="Select branch"
+                  options={(branches ?? []).map((branch) => ({ value: branch.id, label: branch.name }))}
+                  onChange={(value) => { setBranchId(value); setError(null); }} />}
               </div>
-
-              <div className="bg-gray-50 rounded-lg p-4 space-y-2 text-sm">
-                <h4 className="font-semibold text-gray-900">Booking Summary</h4>
-                <div className="flex justify-between text-gray-600">
-                  <span>Date</span>
-                  <span className="font-medium text-gray-900">{months[today.getMonth()]} {selectedDate}, {today.getFullYear()}</span>
-                </div>
-                <div className="flex justify-between text-gray-600">
-                  <span>Time</span>
-                  <span className="font-medium text-gray-900">{selectedTime}</span>
-                </div>
-                <div className="flex justify-between text-gray-600">
-                  <span>Branch</span>
-                  <span className="font-medium text-gray-900 text-right max-w-45 truncate">{(activeBranch.split(" - ")[1]) || activeBranch}</span>
-                </div>
+              <div className={cardClass}>
+                <label htmlFor="appointment-date" className="block text-lg font-bold text-gray-900">Preferred Date</label>
+                <input id="appointment-date" type="date" required min={today} max={maxDate} value={date}
+                  onChange={(event) => { setDate(event.target.value); setTime(''); setError(null); }} className={inputClass}
+                  aria-describedby="appointment-timezone" />
+                <p id="appointment-timezone" className="text-sm text-gray-500">Choose up to 90 days ahead. All times are in India Standard Time (IST).</p>
               </div>
-
-              <button className="w-full py-3 bg-[hsl(var(--accent))] hover:bg-[hsl(173,80%,35%)] text-white font-semibold rounded-lg transition-colors shadow-md flex items-center justify-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/><path d="m9 16 2 2 4-4"/></svg>
-                Confirm Booking
-              </button>
-
-              <p className="text-xs text-gray-400 text-center">You'll receive a confirmation via email &amp; SMS</p>
+              <div className={cardClass}>
+                <h3 id="appointment-slots" className="text-lg font-bold text-gray-900">Preferred Time</h3>
+                <div className="grid grid-cols-3 sm:grid-cols-4 gap-3" role="group" aria-labelledby="appointment-slots">
+                  {slots.map((slot) => {
+                    const expired = !validDate || !isFutureSlot(date, slot, now);
+                    return <button key={slot} type="button" disabled={expired} aria-pressed={activeTime === slot}
+                      onClick={() => { setTime(slot); setError(null); }}
+                      className={`px-3 py-3 rounded-lg border text-sm font-medium transition-all disabled:opacity-40 disabled:cursor-not-allowed ${activeTime === slot
+                        ? 'bg-[hsl(var(--primary))] text-white border-[hsl(var(--primary))] shadow-md'
+                        : 'border-gray-200 text-gray-600 hover:border-[hsl(var(--accent))]'}`}>{slot}</button>;
+                  })}
+                </div>
+                {validDate && !slots.some((slot) => isFutureSlot(date, slot, now)) &&
+                  <p role="status" className="text-sm text-gray-600">No future times remain for this date. Please choose another date.</p>}
+              </div>
+            </fieldset>
+            <div className="lg:col-span-1 min-w-0">
+              <div className={`${cardClass} sticky top-28`}>
+                <fieldset disabled={locked} className="space-y-4 min-w-0">
+                  <legend className="text-lg font-bold text-gray-900 mb-4">Your Details</legend>
+                  <div className="space-y-1">
+                    <label htmlFor="appointment-name" className="text-sm font-medium text-gray-700">Full Name</label>
+                    <input id="appointment-name" name="fullName" autoComplete="name" type="text" required minLength={2} maxLength={120}
+                      value={fullName} onChange={(event) => setFullName(event.target.value)} className={inputClass} />
+                  </div>
+                  <div className="space-y-1">
+                    <label htmlFor="appointment-phone" className="text-sm font-medium text-gray-700">Mobile Number</label>
+                    <input id="appointment-phone" name="phone" autoComplete="tel" type="tel" required maxLength={24}
+                      value={phone} onChange={(event) => setPhone(event.target.value)} className={inputClass} aria-describedby="appointment-phone-help" />
+                    <p id="appointment-phone-help" className="text-xs text-gray-500">10-digit Indian mobile number; +91 is optional.</p>
+                  </div>
+                  <div className="space-y-1">
+                    <label htmlFor="appointment-email" className="text-sm font-medium text-gray-700">Email Address</label>
+                    <input id="appointment-email" name="email" autoComplete="email" type="email" required maxLength={254}
+                      value={email} onChange={(event) => setEmail(event.target.value)} className={inputClass} />
+                  </div>
+                </fieldset>
+                <div className="bg-gray-50 rounded-lg p-4 space-y-2 text-sm">
+                  <h4 className="font-semibold text-gray-900">Request Summary</h4>
+                  <dl className="space-y-2 text-gray-600">
+                    <div className="flex justify-between gap-3"><dt>Date</dt><dd>{date || 'Select a date'}</dd></div>
+                    <div className="flex justify-between gap-3"><dt>Time</dt><dd>{receipt ? time : activeTime || 'Select a time'}{(receipt ? time : activeTime) && ' IST'}</dd></div>
+                    <div className="flex justify-between gap-3"><dt>Branch</dt><dd className="text-right">{activeBranch?.name}</dd></div>
+                  </dl>
+                </div>
+                {(error || receipt) && <div ref={feedback} tabIndex={-1} role={error ? 'alert' : 'status'}
+                  className={`rounded-lg p-4 text-sm space-y-2 ${error ? 'bg-red-50 text-red-800' : 'bg-teal-50 text-teal-900'}`}>
+                  {error ? <p>{error}</p> : receipt && <>
+                    <p className="font-semibold">{receipt.status === 'pending' ? 'Appointment request received' : `Appointment status: ${receipt.status}`}</p>
+                    <p>{receipt.status === 'pending' ? 'Your request is pending hospital confirmation. Your appointment is not confirmed yet.' : 'This is the current status of your previously submitted request.'}</p>
+                    <p className="break-all">Reference: {receipt.id}</p>
+                  </>}
+                </div>}
+                {receipt ? <button key="new-request" type="button" onClick={startNewRequest} className="w-full py-3 border border-gray-300 rounded-lg text-gray-700">Start a new request</button> : (
+                  <button key="submit-request" type="submit" disabled={submitting} className="w-full py-3 bg-[hsl(var(--accent))] hover:bg-[hsl(173,80%,35%)] text-white font-semibold rounded-lg transition-colors shadow-md disabled:opacity-60 disabled:cursor-wait">
+                    {submitting ? 'Submitting request…' : 'Request Appointment'}
+                  </button>
+                )}
+                <p className="text-xs text-gray-500 text-center">Submitting sends your contact details and preferred appointment to the hospital for review.</p>
+              </div>
             </div>
-          </div>
-        </div>
+          </form>
+        )}
       </div>
     </section>
   );

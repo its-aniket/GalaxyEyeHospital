@@ -1,8 +1,11 @@
+import PhoneNumber from "../components/PhoneNumber";
+import { phoneHref } from "../lib/phone";
 import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import LoadingSpinner from "../components/LoadingSpinner";
 import { useQuery } from "../hooks/useQuery";
 import { createHomeConsultationLead, getAwards, getContactInfo, getHospitalInfo, getHospitalStats } from "../services/api";
+import ThemedSelect from "../components/ThemedSelect";
 
 type EyeSelection = "Left" | "Right" | "Both";
 
@@ -291,10 +294,10 @@ export default function EyeCareAtHomePage() {
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
               </a>
               <a
-                href={`tel:${contactInfo.tollFree}`}
+                href={phoneHref(contactInfo.tollFree)}
                 className="px-8 py-3.5 border-2 border-white/30 text-white font-semibold rounded-lg hover:bg-white/10 transition-colors inline-flex items-center justify-center gap-2"
               >
-                Call {contactInfo.tollFree}
+                Call <PhoneNumber value={contactInfo.tollFree} />
               </a>
             </div>
 
@@ -374,10 +377,10 @@ export default function EyeCareAtHomePage() {
                     {formMessage ?? "Thank you — our team will contact you within 24 hours."}
                   </p>
                   <div className="flex flex-col sm:flex-row gap-3 pt-2">
-                    <a href={`tel:${contactInfo.tollFree}`} className="px-6 py-3 rounded-lg bg-[hsl(var(--primary))] text-white font-semibold">
-                      Call {contactInfo.tollFree}
+                    <a href={phoneHref(contactInfo.tollFree)} className="px-6 py-3 rounded-lg bg-[hsl(var(--primary))] text-white font-semibold inline-flex items-center justify-center text-center">
+                      Call <PhoneNumber value={contactInfo.tollFree} />
                     </a>
-                    <Link to="/" className="px-6 py-3 rounded-lg border border-gray-200 font-semibold text-gray-700">
+                    <Link to="/" className="px-6 py-3 rounded-lg border border-gray-200 font-semibold text-gray-700 inline-flex items-center justify-center text-center">
                       Back to home
                     </Link>
                   </div>
@@ -418,29 +421,15 @@ export default function EyeCareAtHomePage() {
 
                   <div className="grid md:grid-cols-2 gap-4">
                     <Field label="Which eye?" error={errors.whichEye}>
-                      <select
-                        value={formState.whichEye}
-                        onChange={(event) => setField("whichEye", event.target.value as EyeSelection)}
-                        className={inputClass(errors.whichEye)}
-                      >
-                        <option value="Right">Right eye</option>
-                        <option value="Left">Left eye</option>
-                        <option value="Both">Both eyes</option>
-                      </select>
+                      <ThemedSelect value={formState.whichEye} ariaLabel="Which eye?" onChange={(value) => setField("whichEye", value)}
+                        buttonClassName={errors.whichEye ? "border-red-300" : ""}
+                        options={[{ value: "Right", label: "Right eye" }, { value: "Left", label: "Left eye" }, { value: "Both", label: "Both eyes" }]} />
                     </Field>
 
                     <Field label="Since how long?" error={errors.sinceHowLong} optional>
-                      <select
-                        value={formState.sinceHowLong}
-                        onChange={(event) => setField("sinceHowLong", event.target.value)}
-                        className={inputClass(errors.sinceHowLong)}
-                      >
-                        <option value="">Select a time frame</option>
-                        <option value="Today">Today</option>
-                        <option value="Few days">Few days</option>
-                        <option value="Few weeks">Few weeks</option>
-                        <option value="Longer">Longer</option>
-                      </select>
+                      <ThemedSelect value={formState.sinceHowLong} ariaLabel="Since how long?" onChange={(value) => setField("sinceHowLong", value)}
+                        buttonClassName={errors.sinceHowLong ? "border-red-300" : ""}
+                        options={[{ value: "", label: "Select a time frame" }, { value: "Today", label: "Today" }, { value: "Few days", label: "Few days" }, { value: "Few weeks", label: "Few weeks" }, { value: "Longer", label: "Longer" }]} />
                     </Field>
                   </div>
 
@@ -456,16 +445,9 @@ export default function EyeCareAtHomePage() {
 
                   <div className="grid md:grid-cols-2 gap-4">
                     <Field label="Preferred callback time" error={errors.preferredCallbackTime} optional>
-                      <select
-                        value={formState.preferredCallbackTime}
-                        onChange={(event) => setField("preferredCallbackTime", event.target.value)}
-                        className={inputClass(errors.preferredCallbackTime)}
-                      >
-                        <option value="">Any time</option>
-                        <option value="Morning">Morning</option>
-                        <option value="Afternoon">Afternoon</option>
-                        <option value="Evening">Evening</option>
-                      </select>
+                      <ThemedSelect value={formState.preferredCallbackTime} ariaLabel="Preferred callback time" onChange={(value) => setField("preferredCallbackTime", value)}
+                        buttonClassName={errors.preferredCallbackTime ? "border-red-300" : ""}
+                        options={[{ value: "", label: "Any time" }, { value: "Morning", label: "Morning" }, { value: "Afternoon", label: "Afternoon" }, { value: "Evening", label: "Evening" }]} />
                     </Field>
 
                     <Field label="Eye photo" error={errors.photo}>
@@ -581,8 +563,8 @@ export default function EyeCareAtHomePage() {
               <p className="text-[hsl(var(--accent))] font-semibold tracking-wider uppercase text-sm">Need a faster response?</p>
               <h2 className="font-[Outfit] text-3xl md:text-4xl font-bold text-white">Call our team if the symptoms feel urgent.</h2>
             </div>
-            <a href={`tel:${contactInfo.emergencyPhone}`} className="px-8 py-4 rounded-lg bg-white text-[hsl(var(--primary))] font-semibold inline-flex items-center justify-center gap-2 shadow-lg">
-              Call {contactInfo.emergencyPhone}
+            <a href={phoneHref(contactInfo.emergencyPhone)} className="px-8 py-4 rounded-lg bg-white text-[hsl(var(--primary))] font-semibold inline-flex items-center justify-center gap-2 shadow-lg">
+              Call <PhoneNumber value={contactInfo.emergencyPhone} />
             </a>
           </div>
         </div>
